@@ -208,16 +208,14 @@
       }
 
       // פונקציה לטעינת תמונות מתיקיית הצדיק
-      async function loadTzadikImages(tzadikName) {
-        console.log("מחפש תמונות עבור:", tzadikName);
+      async function loadTzadikImages(tzadikId) {
+        console.log("מחפש תמונות עבור ID:", tzadikId);
         const images = [];
         let imageNumber = 1;
         const maxImagesToCheck = 20; // מקסימום תמונות לבדוק
 
         while (imageNumber <= maxImagesToCheck) {
-          // קידוד השם לשימוש ב-URL
-          const encodedName = encodeURIComponent(tzadikName);
-          const imagePath = `images/${encodedName}/${imageNumber}.jpg`;
+          const imagePath = `images/${tzadikId}/${imageNumber}.jpg`;
           console.log("בודק נתיב:", imagePath);
           const exists = await imageExists(imagePath);
           console.log("קיים?", exists);
@@ -429,8 +427,8 @@
         }
 
         // תמונה ראשית
-        console.log("שם הצדיק:", tzadik.name);
-        const tzadikImages = await loadTzadikImages(tzadik.name);
+        console.log("ID הצדיק:", tzadik.id);
+        const tzadikImages = await loadTzadikImages(tzadik.id);
         console.log("סך הכל תמונות שנמצאו:", tzadikImages.length);
 
         if (tzadikImages.length > 0) {
