@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>דף צדיק - הבלוג של הצדיקים</title>
+    <link rel="icon" type="image/x-icon" href="אייקון.png" />
+    <link rel="shortcut icon" type="image/x-icon" href="אייקון.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@5/dist/bundle.min.js"></script>
     <style>
@@ -61,10 +63,10 @@
         </div>
 
         <!-- עמודת תוכן עיקרי -->
-        <div class="lg:col-span-2 space-y-3">
+        <div class="lg:col-span-2 space-y-3 flex flex-col">
           <!-- תיאור המקום -->
           <div
-            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl"
+            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl transition-all duration-300"
           >
             <div class="border-b border-amber-100 px-6 py-4">
               <h2 class="text-xl text-amber-900 font-bold">תיאור המקום</h2>
@@ -79,7 +81,7 @@
 
           <!-- ביוגרפיה -->
           <div
-            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl"
+            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl transition-all duration-300"
           >
             <div class="border-b border-amber-100 px-6 py-4">
               <h2 class="text-xl text-amber-900 font-bold">ביוגרפיה</h2>
@@ -94,7 +96,7 @@
 
           <!-- ספרים -->
           <div
-            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl"
+            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl transition-all duration-300"
           >
             <div class="border-b border-amber-100 px-6 py-4">
               <h2 class="text-xl text-amber-900 font-bold">ספרים</h2>
@@ -106,7 +108,7 @@
 
           <!-- מאמרים -->
           <div
-            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl"
+            class="bg-white/90 backdrop-blur-sm shadow-xl border border-amber-100 rounded-2xl transition-all duration-300"
           >
             <div class="border-b border-amber-100 px-6 py-4">
               <h2 class="text-xl text-amber-900 font-bold">מאמרים</h2>
@@ -195,7 +197,39 @@
         }
       }
 
-      function renderTzadik(tzadik) {
+      // פונקציה לבדיקה אם תמונה קיימת
+      async function imageExists(url) {
+        try {
+          const response = await fetch(url, { method: "HEAD" });
+          return response.ok;
+        } catch {
+          return false;
+        }
+      }
+
+      // פונקציה לטעינת תמונות מתיקיית הצדיק
+      async function loadTzadikImages(tzadikName) {
+        const images = [];
+        let imageNumber = 1;
+        const maxImagesToCheck = 20; // מקסימום תמונות לבדוק
+
+        while (imageNumber <= maxImagesToCheck) {
+          const imagePath = `images/${tzadikName}/${imageNumber}.jpg`;
+          const exists = await imageExists(imagePath);
+
+          if (exists) {
+            images.push(imagePath);
+            imageNumber++;
+          } else {
+            // אם לא מצאנו תמונה, מפסיקים
+            break;
+          }
+        }
+
+        return images;
+      }
+
+      async function renderTzadik(tzadik) {
         // כותרת
         const title = getTitle(tzadik);
         const honorific = tzadik.gender === "male" ? 'זצ"ל' : 'ע"ה';
@@ -285,33 +319,60 @@
           `;
         }
 
-        // תיאור המקום
-        document.getElementById("descriptionContent").innerHTML =
-          tzadik.descriptionPlace
-            ? `<p class="mb-4 last:mb-0 whitespace-pre-line">${tzadik.descriptionPlace}</p>`
-            : '<p class="text-slate-500 italic text-center">אין מידע זמין</p>';
-
-        // ביוגרפיה
-        if (
+        // בדיקה אילו סקשנים יש בהם מידע
+        const hasDescription =
+          tzadik.descriptionPlace && tzadik.descriptionPlace.trim();
+        const hasBiography =
           tzadik.biography &&
           Array.isArray(tzadik.biography) &&
-          tzadik.biography.length > 0
-        ) {
+          tzadik.biography.length > 0;
+        const hasBooks =
+          tzadik.books &&
+          Array.isArray(tzadik.books) &&
+          tzadik.books.length > 0;
+        const hasArticles =
+          tzadik.article &&
+          Array.isArray(tzadik.article) &&
+          tzadik.article.length > 0;
+
+        // תיאור המקום
+        const descriptionSection = document
+          .getElementById("descriptionContent")
+          .closest(".bg-white\\/90");
+        if (hasDescription) {
+          document.getElementById(
+            "descriptionContent"
+          ).innerHTML = `<p class="mb-4 last:mb-0 whitespace-pre-line">${tzadik.descriptionPlace}</p>`;
+          descriptionSection.classList.remove("scale-95", "opacity-80");
+        } else {
+          document.getElementById("descriptionContent").innerHTML =
+            '<p class="text-slate-500 italic text-center text-sm">אין מידע זמין</p>';
+          descriptionSection.classList.add("scale-95", "opacity-80");
+          descriptionSection.style.order = "100";
+        }
+
+        // ביוגרפיה
+        const biographySection = document
+          .getElementById("biographyContent")
+          .closest(".bg-white\\/90");
+        if (hasBiography) {
           document.getElementById("biographyContent").innerHTML =
             tzadik.biography
               .map((p) => `<p class="mb-4 last:mb-0">${p}</p>`)
               .join("");
+          biographySection.classList.remove("scale-95", "opacity-80");
         } else {
           document.getElementById("biographyContent").innerHTML =
-            '<p class="text-slate-500 italic text-center">אין מידע זמין</p>';
+            '<p class="text-slate-500 italic text-center text-sm">אין מידע זמין</p>';
+          biographySection.classList.add("scale-95", "opacity-80");
+          biographySection.style.order = "101";
         }
 
         // ספרים
-        if (
-          tzadik.books &&
-          Array.isArray(tzadik.books) &&
-          tzadik.books.length > 0
-        ) {
+        const booksSection = document
+          .getElementById("booksContent")
+          .closest(".bg-white\\/90");
+        if (hasBooks) {
           document.getElementById("booksContent").innerHTML = `
             <ul class="space-y-2">
               ${tzadik.books
@@ -326,17 +387,19 @@
                 .join("")}
             </ul>
           `;
+          booksSection.classList.remove("scale-95", "opacity-80");
         } else {
           document.getElementById("booksContent").innerHTML =
-            '<p class="text-slate-500 italic text-center">אין מידע זמין</p>';
+            '<p class="text-slate-500 italic text-center text-sm">אין מידע זמין</p>';
+          booksSection.classList.add("scale-95", "opacity-80");
+          booksSection.style.order = "102";
         }
 
         // מאמרים
-        if (
-          tzadik.article &&
-          Array.isArray(tzadik.article) &&
-          tzadik.article.length > 0
-        ) {
+        const articlesSection = document
+          .getElementById("articlesContent")
+          .closest(".bg-white\\/90");
+        if (hasArticles) {
           document.getElementById("articlesContent").innerHTML = `
             <ul class="space-y-2">
               ${tzadik.article
@@ -351,41 +414,40 @@
                 .join("")}
             </ul>
           `;
+          articlesSection.classList.remove("scale-95", "opacity-80");
         } else {
           document.getElementById("articlesContent").innerHTML =
-            '<p class="text-slate-500 italic text-center">אין מידע זמין</p>';
+            '<p class="text-slate-500 italic text-center text-sm">אין מידע זמין</p>';
+          articlesSection.classList.add("scale-95", "opacity-80");
+          articlesSection.style.order = "103";
         }
 
         // תמונה ראשית
-        if (tzadik.mainImage) {
+        const tzadikImages = await loadTzadikImages(tzadik.name);
+
+        if (tzadikImages.length > 0) {
           document
             .getElementById("mainImageSection")
             .classList.remove("hidden");
-          document.getElementById("mainImage").src = tzadik.mainImage;
+          document.getElementById("mainImage").src = tzadikImages[0];
           document.getElementById("mainImage").alt = tzadik.name;
         }
 
         // תמונות נוספות
-        if (
-          tzadik.images &&
-          Array.isArray(tzadik.images) &&
-          tzadik.images.length > 0
-        ) {
-          const filteredImages = tzadik.images.filter((img) => img);
-          if (filteredImages.length > 0) {
-            document.getElementById("imagesSection").classList.remove("hidden");
-            document.getElementById("imagesGallery").innerHTML = filteredImages
-              .map(
-                (img, i) => `
+        if (tzadikImages.length > 1) {
+          const additionalImages = tzadikImages.slice(1);
+          document.getElementById("imagesSection").classList.remove("hidden");
+          document.getElementById("imagesGallery").innerHTML = additionalImages
+            .map(
+              (img, i) => `
               <img
                 src="${img}"
-                alt="תמונה ${i + 1}"
+                alt="תמונה ${i + 2}"
                 class="rounded max-h-32 border"
               />
             `
-              )
-              .join("");
-          }
+            )
+            .join("");
         }
       }
 
