@@ -141,6 +141,7 @@
             </div>
             <div id="imagesGallery" class="p-6 flex flex-wrap gap-3"></div>
           </div>
+          <!-- <img src="./imaeges/2/1.jpg" alt="" /> -->
         </div>
       </div>
     </div>
@@ -215,7 +216,7 @@
         const maxImagesToCheck = 20; // מקסימום תמונות לבדוק
 
         while (imageNumber <= maxImagesToCheck) {
-          const imagePath = `images/${tzadikId}/${imageNumber}.jpg`;
+          const imagePath = `./images/${tzadikId}/${imageNumber}.jpg`;
           console.log("בודק נתיב:", imagePath);
           const exists = await imageExists(imagePath);
           console.log("קיים?", exists);
