@@ -13,9 +13,126 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
       }
+
+      /* קרוסלה */
+      .carousel-container {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .carousel-track {
+        display: flex;
+        transition: transform 0.3s ease-in-out;
+        gap: 0.75rem;
+      }
+
+      .carousel-item {
+        flex: 0 0 auto;
+        width: 200px;
+        cursor: pointer;
+      }
+
+      @media (max-width: 640px) {
+        .carousel-item {
+          width: 150px;
+        }
+      }
+
+      /* מודל תצוגה מלאה */
+      .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .image-modal.active {
+        display: flex;
+      }
+
+      .modal-image {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .modal-close:hover {
+        background: white;
+        transform: scale(1.1);
+      }
+
+      .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 10;
+      }
+
+      .carousel-btn:hover {
+        background: white;
+        transform: translateY(-50%) scale(1.1);
+      }
+
+      .carousel-btn.prev {
+        left: 10px;
+      }
+
+      .carousel-btn.next {
+        right: 10px;
+      }
     </style>
   </head>
   <body class="min-h-screen bg-[#FDFBF7] p-6">
+    <!-- מודל תצוגה מלאה -->
+    <div id="imageModal" class="image-modal">
+      <div class="modal-close" onclick="closeImageModal()">
+        <svg
+          class="w-6 h-6 text-amber-900"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </div>
+      <img id="modalImage" class="modal-image" src="" alt="" />
+    </div>
+
     <div class="max-w-4xl mx-auto">
       <!-- כותרת עליונה -->
       <div class="flex justify-between items-center gap-4 mb-8">
@@ -127,7 +244,13 @@
               <h2 class="text-xl text-amber-900 font-bold">תמונה ראשית</h2>
             </div>
             <div class="p-6 flex justify-center">
-              <img id="mainImage" src="" alt="" class="rounded-lg max-h-64" />
+              <img
+                id="mainImage"
+                src=""
+                alt=""
+                class="rounded-lg max-h-64 cursor-pointer hover:opacity-90 transition"
+                onclick="openImageModal(this.src)"
+              />
             </div>
           </div>
 
@@ -139,15 +262,56 @@
             <div class="border-b border-amber-100 px-6 py-4">
               <h2 class="text-xl text-amber-900 font-bold">תמונות נוספות</h2>
             </div>
-            <div id="imagesGallery" class="p-6 flex flex-wrap gap-3"></div>
+            <div class="p-6 carousel-container">
+              <div
+                class="carousel-btn prev"
+                onclick="scrollCarousel(-1)"
+                style="display: none"
+              >
+                <svg
+                  class="w-6 h-6 text-amber-900"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </div>
+              <div id="imagesGallery" class="carousel-track"></div>
+              <div
+                class="carousel-btn next"
+                onclick="scrollCarousel(1)"
+                style="display: none"
+              >
+                <svg
+                  class="w-6 h-6 text-amber-900"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
-          <!-- <img src="./imaeges/2/1.jpg" alt="" /> -->
         </div>
       </div>
     </div>
 
     <script>
       let allData = [];
+      let currentCarouselIndex = 0;
+      let totalCarouselImages = 0;
 
       // טעינת הנתונים
       async function loadData() {
@@ -228,6 +392,62 @@
         }
 
         return images;
+      }
+
+      // פונקציות למודל תצוגה מלאה
+      function openImageModal(imageSrc) {
+        document.getElementById("modalImage").src = imageSrc;
+        document.getElementById("imageModal").classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeImageModal() {
+        document.getElementById("imageModal").classList.remove("active");
+        document.body.style.overflow = "auto";
+      }
+
+      // סגירה בלחיצה על ESC
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          closeImageModal();
+        }
+      });
+
+      // סגירה בלחיצה על הרקע
+      document
+        .getElementById("imageModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeImageModal();
+          }
+        });
+
+      // פונקציות לקרוסלה
+      function scrollCarousel(direction) {
+        const gallery = document.getElementById("imagesGallery");
+        const itemWidth = 200 + 12; // width + gap
+        currentCarouselIndex += direction;
+
+        // גבולות
+        if (currentCarouselIndex < 0) currentCarouselIndex = 0;
+        if (currentCarouselIndex > totalCarouselImages - 1)
+          currentCarouselIndex = totalCarouselImages - 1;
+
+        gallery.style.transform = `translateX(${
+          currentCarouselIndex * itemWidth
+        }px)`;
+        updateCarouselButtons();
+      }
+
+      function updateCarouselButtons() {
+        const prevBtn = document.querySelector(".carousel-btn.prev");
+        const nextBtn = document.querySelector(".carousel-btn.next");
+
+        if (totalCarouselImages > 2) {
+          prevBtn.style.display = currentCarouselIndex > 0 ? "flex" : "none";
+          nextBtn.style.display =
+            currentCarouselIndex < totalCarouselImages - 2 ? "flex" : "none";
+        }
       }
 
       async function renderTzadik(tzadik) {
@@ -437,18 +657,26 @@
         // תמונות נוספות
         if (tzadikImages.length > 1) {
           const additionalImages = tzadikImages.slice(1);
+          totalCarouselImages = additionalImages.length;
+          currentCarouselIndex = 0;
+
           document.getElementById("imagesSection").classList.remove("hidden");
           document.getElementById("imagesGallery").innerHTML = additionalImages
             .map(
               (img, i) => `
-              <img
-                src="${img}"
-                alt="תמונה ${i + 2}"
-                class="rounded max-h-32 border"
-              />
+              <div class="carousel-item">
+                <img
+                  src="${img}"
+                  alt="תמונה ${i + 2}"
+                  class="rounded max-h-32 w-full object-cover border cursor-pointer hover:opacity-90 transition"
+                  onclick="openImageModal('${img}')"
+                />
+              </div>
             `
             )
             .join("");
+
+          updateCarouselButtons();
         }
       }
 
