@@ -98,6 +98,14 @@
                 <option value="">בחר קהילה</option>
               </select>
             </div>
+            <div class="relative flex-1 max-w-xs w-full">
+              <select
+                id="monthFilter"
+                class="pr-4 pl-4 py-3 text-right bg-amber-50 border border-amber-200 rounded-xl w-full text-gray-800"
+              >
+                <option value="">חודש פטירה</option>
+              </select>
+            </div>
             <button
               type="button"
               id="resetFilters"
@@ -137,6 +145,17 @@
         }
       }
 
+      // חילוץ חודש עברי מתאריך עברי מלא
+      function extractHebrewMonth(hebrewDate) {
+        if (!hebrewDate) return null;
+        const parts = hebrewDate.split(" ");
+        // המילה השנייה היא החודש (לדוגמה: "א באלול תרסט" -> "באלול")
+        if (parts.length >= 2) {
+          return parts[1]; // מסיר את ה-ב' מ"באלול"
+        }
+        return null;
+      }
+
       // מילוי הפילטרים
       function populateFilters() {
         const cities = [
@@ -145,6 +164,15 @@
         const communities = [
           ...new Set(
             tzadikimData.map((t) => t.community?.name).filter(Boolean)
+          ),
+        ].sort((a, b) => a.localeCompare(b, "he"));
+
+        // חודשים עבריים
+        const hebrewMonths = [
+          ...new Set(
+            tzadikimData
+              .map((t) => extractHebrewMonth(t.deathDateHebrew))
+              .filter(Boolean)
           ),
         ].sort((a, b) => a.localeCompare(b, "he"));
 
@@ -162,6 +190,14 @@
           option.value = community;
           option.textContent = community;
           communityFilter.appendChild(option);
+        });
+
+        const monthFilter = document.getElementById("monthFilter");
+        hebrewMonths.forEach((month) => {
+          const option = document.createElement("option");
+          option.value = month;
+          option.textContent = month;
+          monthFilter.appendChild(option);
         });
       }
 
@@ -272,6 +308,7 @@
         const cityFilter = document.getElementById("cityFilter").value;
         const communityFilter =
           document.getElementById("communityFilter").value;
+        const monthFilter = document.getElementById("monthFilter").value;
 
         const filtered = tzadikimData.filter((tzadik) => {
           const matchesSearch =
@@ -279,7 +316,12 @@
           const matchesCity = !cityFilter || tzadik.city === cityFilter;
           const matchesCommunity =
             !communityFilter || tzadik.community?.name === communityFilter;
-          return matchesSearch && matchesCity && matchesCommunity;
+          const matchesMonth =
+            !monthFilter ||
+            extractHebrewMonth(tzadik.deathDateHebrew) === monthFilter;
+          return (
+            matchesSearch && matchesCity && matchesCommunity && matchesMonth
+          );
         });
 
         renderTzadikim(filtered);
@@ -294,6 +336,9 @@
         .addEventListener("change", applyFilters);
       document
         .getElementById("communityFilter")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("monthFilter")
         .addEventListener("change", applyFilters);
 
       document
@@ -317,6 +362,7 @@
         document.getElementById("searchInput").value = "";
         document.getElementById("cityFilter").value = "";
         document.getElementById("communityFilter").value = "";
+        document.getElementById("monthFilter").value = "";
         applyFilters();
       });
 
@@ -326,53 +372,71 @@
       // *** רשימה לדוגמה לבדיקות ***
       // הסר את ההערה כדי לראות דוגמה ללא טעינת JSON
 
-      /*
-      tzadikimData = [
-        {
-          id: 1,
-          name: "יוסף חיים",
-          gender: "male",
-          community: { id: 4, name: "עיראק" },
-          city: "בגדד",
-          country: "עיראק",
-        },
-        {
-          id: 2,
-          name: "אהרון בוזגלו",
-          gender: "male",
-          community: { id: 2, name: "מרוקו" },
-          city: "אשקלון",
-          country: "ישראל",
-        },
-        {
-          id: 3,
-          name: "מרים שובלי",
-          gender: "female",
-          community: { id: 3, name: "תימן" },
-          city: "פתח תקווה",
-          country: "ישראל",
-        },
-        {
-          id: 4,
-          name: "יחיא עואד",
-          gender: "male",
-          community: { id: 3, name: "תימן" },
-          city: "רמת השרון",
-          country: "ישראל",
-        },
-        {
-          id: 5,
-          name: "יעקב אבוחצירא",
-          gender: "male",
-          community: { id: 2, name: "מרוקו" },
-          city: "נתיבות",
-          country: "ישראל",
-        },
-      ];
-    
-      populateFilters();
-      renderTzadikim(tzadikimData);
-      */
+      //   tzadikimData = [
+      //     {
+      //       id: 1,
+      //       name: "יוסף חיים",
+      //       gender: "male",
+      //       community: { id: 4, name: "עיראק" },
+      //       city: "בגדד",
+      //       country: "עיראק",
+      //       birthDate: "1835-09-04",
+      //       birthDateHebrew: "כד אלול תקצה",
+      //       deathDate: "1909-08-30",
+      //       deathDateHebrew: "א אלול תרסט",
+      //     },
+      //     {
+      //       id: 2,
+      //       name: "אהרון בוזגלו",
+      //       gender: "male",
+      //       community: { id: 2, name: "מרוקו" },
+      //       city: "אשקלון",
+      //       country: "ישראל",
+      //       birthDate: null,
+      //       birthDateHebrew: null,
+      //       deathDate: "1956-10-15",
+      //       deathDateHebrew: "י אלול תשטז",
+      //     },
+      //     {
+      //       id: 3,
+      //       name: "מרים שובלי",
+      //       gender: "female",
+      //       community: { id: 3, name: "תימן" },
+      //       city: "פתח תקווה",
+      //       country: "ישראל",
+      //       birthDate: null,
+      //       birthDateHebrew: null,
+      //       deathDate: "1996-07-03",
+      //       deathDateHebrew: "טז תמוז תשנו",
+      //     },
+      //     {
+      //       id: 4,
+      //       name: "יחיא עואד",
+      //       gender: "male",
+      //       community: { id: 3, name: "תימן" },
+      //       city: "רמת השרון",
+      //       country: "ישראל",
+      //       birthDate: null,
+      //       birthDateHebrew: null,
+      //       deathDate: "1981-10-22",
+      //       deathDateHebrew: "כג תשרי תשמב",
+      //     },
+      //     {
+      //       id: 5,
+      //       name: "יעקב אבוחצירא",
+      //       gender: "male",
+      //       community: { id: 2, name: "מרוקו" },
+      //       city: "נתיבות",
+      //       country: "ישראל",
+      //       birthDate: "1808-01-01",
+      //       birthDateHebrew: "כא טבת תקסח",
+      //       deathDate: "1880-12-20",
+      //       deathDateHebrew: "ח טבת תרמא",
+      //     },
+      //   ];
+
+      //   populateFilters();
+      //   renderTzadikim(tzadikimData);
     </script>
   </body>
 </html>

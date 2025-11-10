@@ -7,7 +7,6 @@
     <link rel="icon" type="image/x-icon" href="./אייקון.jpg" />
     <link rel="shortcut icon" type="image/x-icon" href="./אייקון.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@5/dist/bundle.min.js"></script>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -313,6 +312,46 @@
       let currentCarouselIndex = 0;
       let totalCarouselImages = 0;
 
+      // נתוני דוגמה לפיתוח
+    //   const DEMO_TZADIK = {
+    //     id: 999,
+    //     name: "יוסף חיים",
+    //     gender: "male",
+    //     community: { name: "בגדד" },
+    //     birthDate: "1835-09-04",
+    //     birthDateHebrew: "כד באלול תקצ",
+    //     deathDate: "1909-08-30",
+    //     deathDateHebrew: "א באלול תרס",
+    //     country: "עיראק",
+    //     city: "בגדד",
+    //     location: [33.3152, 44.3661],
+    //     descriptionPlace:
+    //       "קברו של הבן איש חי נמצא בבית הקברות היהודי העתיק בבגדד, עיראק. המקום היה אתר עלייה לרגל חשוב ליהודי עיראק במשך דורות.\n\nלאחר עזיבת רוב יהודי עיראק, המקום נשמר על ידי הקהילה היהודית הקטנה שנותרה בבגדד.",
+    //     biography: [
+    //       "רבי יוסף חיים מבגדד, המכונה 'בן איש חי' על שם ספרו המפורסם, היה מגדולי הפוסקים והמקובלים בעדות המזרח במאה ה-19.",
+    //       "נולד בבגדד לאביו רבי אליהו חיים, ראש הישיבה. כבר מגיל צעיר התבלט בחריפותו ובקיאותו העצומה בכל חלקי התורה.",
+    //       "בשנת 1859 התמנה לרב הראשי של בגדד, תפקיד בו כיהן עד יום פטירתו. תחת הנהגתו התפתחה הקהילה היהודית בבגדד והפכה למרכז תורני חשוב.",
+    //       "חיבר למעלה מ-60 ספרים בכל תחומי התורה - הלכה, קבלה, דרוש ומוסר. ספרו 'בן איש חי' הפך לספר ההלכה המרכזי בקרב יהודי עדות המזרח.",
+    //       'נפטר בבגדד ביום ראש חודש אלול תרס"ט, ומאז נחשב לאחד מגדולי הצדיקים של עדות המזרח. ציונו מהווה אתר עלייה לרגל ליהודים רבים.',
+    //     ],
+    //     books: [
+    //       "בן איש חי - הלכות למעשה לכל ימות השנה",
+    //       'רב פעלים - שו"ת בארבעה חלקים',
+    //       "בן יהוידע - חידושים על האגדות בתלמוד הבבלי",
+    //       "עוד יוסף חי - דרושים על פרשות התורה",
+    //       "לשון חכמים - פירוש על מסכת אבות",
+    //       "אדרת אליהו - קונטרסים קבליים",
+    //       "חסד לאברהם - קונטרסים שונים",
+    //     ],
+    //     article: [
+    //       "דיני ברכות והלכות קריאת שמע ותפילה",
+    //       "הלכות שבת וימים טובים למעשה",
+    //       "דיני נידה וטהרת המשפחה",
+    //       "הלכות כשרות ומאכלות אסורות",
+    //       "סודות התורה והקבלה המעשית",
+    //     ],
+    //   };
+
       // טעינת הנתונים
       async function loadData() {
         try {
@@ -350,16 +389,6 @@
           return comm.includes("תימן") ? "מורי" : "רבי";
         }
         return "";
-      }
-
-      function formatHebrewDate(dateStr) {
-        try {
-          const date = new Date(dateStr);
-          const hd = new Hebcal.HDate(date);
-          return hd.renderGematriya();
-        } catch (e) {
-          return "";
-        }
       }
 
       // פונקציה לבדיקה אם תמונה קיימת
@@ -462,24 +491,54 @@
         // פרטים
         const detailsHtml = [];
 
-        if (tzadik.birthDate) {
-          detailsHtml.push(`
-            <div>
-              <span class="font-medium text-amber-800">תאריך לידה: </span>
-              ${new Date(tzadik.birthDate).toLocaleDateString("he-IL")}
-            </div>
-          `);
+        if (tzadik.birthDate || tzadik.birthDateHebrew) {
+          const gregorian = tzadik.birthDate
+            ? new Date(tzadik.birthDate).toLocaleDateString("he-IL")
+            : "";
+          const hebrew = tzadik.birthDateHebrew || "";
+
+          let dateText = "";
+          if (hebrew && gregorian) {
+            dateText = `${hebrew} | ${gregorian}`;
+          } else if (hebrew) {
+            dateText = hebrew;
+          } else if (gregorian) {
+            dateText = gregorian;
+          }
+
+          if (dateText) {
+            detailsHtml.push(`
+              <div>
+                <span class="font-medium text-amber-800">תאריך לידה: </span>
+                ${dateText}
+              </div>
+            `);
+          }
         }
 
-        if (tzadik.deathDate) {
-          const hebrewDate = formatHebrewDate(tzadik.deathDate);
-          detailsHtml.push(`
-            <div>
-              <span class="font-medium text-amber-800">תאריך פטירה: </span>
-              ${new Date(tzadik.deathDate).toLocaleDateString("he-IL")}
-              ${hebrewDate ? ` | ${hebrewDate}` : ""}
-            </div>
-          `);
+        if (tzadik.deathDate || tzadik.deathDateHebrew) {
+          const gregorian = tzadik.deathDate
+            ? new Date(tzadik.deathDate).toLocaleDateString("he-IL")
+            : "";
+          const hebrew = tzadik.deathDateHebrew || "";
+
+          let dateText = "";
+          if (hebrew && gregorian) {
+            dateText = `${hebrew} | ${gregorian}`;
+          } else if (hebrew) {
+            dateText = hebrew;
+          } else if (gregorian) {
+            dateText = gregorian;
+          }
+
+          if (dateText) {
+            detailsHtml.push(`
+              <div>
+                <span class="font-medium text-amber-800">תאריך פטירה: </span>
+                ${dateText}
+              </div>
+            `);
+          }
         }
 
         if (tzadik.country) {
@@ -693,8 +752,14 @@
         `;
       }
 
-      // טעינה ראשונית
+      // לטעון נתונים אמיתיים
       loadData();
+
+      // נתוני דמו
+    //   (async function init() {
+    //     // טוען מיד את נתוני הדמו
+    //     await renderTzadik(DEMO_TZADIK);
+    //   })();
     </script>
   </body>
 </html>
