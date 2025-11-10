@@ -215,7 +215,9 @@
         const maxImagesToCheck = 20; // מקסימום תמונות לבדוק
 
         while (imageNumber <= maxImagesToCheck) {
-          const imagePath = `images/${tzadikName}/${imageNumber}.jpg`;
+          // קידוד השם לשימוש ב-URL
+          const encodedName = encodeURIComponent(tzadikName);
+          const imagePath = `images/${encodedName}/${imageNumber}.jpg`;
           console.log("בודק נתיב:", imagePath);
           const exists = await imageExists(imagePath);
           console.log("קיים?", exists);
