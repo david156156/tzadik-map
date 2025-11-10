@@ -17,9 +17,9 @@
   <body class="min-h-screen bg-[#FDFBF7] flex flex-col items-center py-12 px-2">
     <div class="max-w-6xl w-full mx-auto">
       <!-- כותרת עליונה -->
-      <div class="text-center mb-12">
+      <div class="text-center mb-6">
         <div
-          class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg border border-amber-100 mb-6"
+          class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg border border-amber-100 mb-4"
         >
           <svg
             class="w-8 h-8 text-amber-700"
@@ -35,19 +35,20 @@
             />
           </svg>
           <h1 class="text-4xl font-bold text-amber-900 text-center">
-            הבלוג של הצדיקים
+            מיקום קיברות צדיקים
           </h1>
         </div>
         <p class="text-lg text-amber-800 max-w-2xl mx-auto">
-          מדריך מפורט לקברי צדיקים ומקומות קדושים ברחבי העולם
+          מיקומי קברי צדיקים ברחבי הארץ - כולל מיקום מדויק בגוגל מפות ו-Waze,
+          תמונות, פרטים ביוגרפיים ומידע היסטורי על כל צדיק
         </p>
       </div>
 
       <!-- חיפוש וכפתור הוספה -->
       <div
-        class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-100 p-8 mb-8"
+        class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-100 p-4 mb-2"
       >
-        <div class="flex flex-col gap-4 flex-1 w-full">
+        <div class="flex flex-col gap-1 flex-1 w-full">
           <div class="relative flex-1 max-w-xs w-full">
             <svg
               class="absolute right-4 top-1/2 transform -translate-y-1/2 text-amber-500 w-5 h-5"
@@ -198,13 +199,13 @@
 
         sortedLetters.forEach((letter) => {
           const section = document.createElement("div");
-          section.className = "mb-4";
+          section.className = "mb-2";
 
           // כותרת האות
           const header = document.createElement("div");
-          header.className = "flex items-center gap-4 mb-6";
+          header.className = "flex items-center gap-4 mb-2";
           header.innerHTML = `
-                    <div class="w-12 h-12 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-lg">
+                    <div class="w-8 h-8 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-xl flex items-center justify-center text-l font-bold shadow-lg">
                         ${letter}
                     </div>
                     <div class="h-px bg-gradient-to-l from-amber-200 to-transparent flex-1"></div>
@@ -214,7 +215,7 @@
           // גריד של כרטיסים
           const grid = document.createElement("div");
           grid.className =
-            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-1 gap-y-1";
 
           grouped[letter].forEach((tzadik) => {
             const card = document.createElement("a");
@@ -227,25 +228,26 @@
             const locationText = tzadik.city || "";
 
             card.innerHTML = `
-                        <div class="p-6 flex items-start gap-4">
-                            <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300">
-                                <svg class="w-7 h-7 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <div class="py-2 px-4 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300 flex-shrink-0">
+                                <svg class="w-6 h-6 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5V8.5a2 2 0 012-2h12a2 2 0 012 2v11M9 12h6"/>
                                 </svg>
                             </div>
-                            <div class="flex-1">
-                                <h3 class="font-bold text-amber-900 text-lg mb-1 group-hover:text-amber-700 transition-colors">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <h3 class="font-bold text-amber-900 text-base group-hover:text-amber-700 transition-colors whitespace-nowrap">
                                     ${title} ${tzadik.name} ${honorific}
                                 </h3>
                                 ${
                                   locationText
                                     ? `
-                                    <div class="flex items-center gap-2 text-amber-800 text-sm">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <span class="text-amber-600 mx-1">|</span>
+                                    <div class="flex items-center gap-1.5 text-amber-800 text-sm">
+                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                                             <circle cx="12" cy="9" r="2.5"/>
                                         </svg>
-                                        <span>${locationText}</span>
+                                        <span class="truncate">${locationText}</span>
                                     </div>
                                 `
                                     : ""
@@ -320,6 +322,57 @@
 
       // טעינה ראשונית
       loadData();
+
+      // *** רשימה לדוגמה לבדיקות ***
+      // הסר את ההערה כדי לראות דוגמה ללא טעינת JSON
+
+      /*
+      tzadikimData = [
+        {
+          id: 1,
+          name: "יוסף חיים",
+          gender: "male",
+          community: { id: 4, name: "עיראק" },
+          city: "בגדד",
+          country: "עיראק",
+        },
+        {
+          id: 2,
+          name: "אהרון בוזגלו",
+          gender: "male",
+          community: { id: 2, name: "מרוקו" },
+          city: "אשקלון",
+          country: "ישראל",
+        },
+        {
+          id: 3,
+          name: "מרים שובלי",
+          gender: "female",
+          community: { id: 3, name: "תימן" },
+          city: "פתח תקווה",
+          country: "ישראל",
+        },
+        {
+          id: 4,
+          name: "יחיא עואד",
+          gender: "male",
+          community: { id: 3, name: "תימן" },
+          city: "רמת השרון",
+          country: "ישראל",
+        },
+        {
+          id: 5,
+          name: "יעקב אבוחצירא",
+          gender: "male",
+          community: { id: 2, name: "מרוקו" },
+          city: "נתיבות",
+          country: "ישראל",
+        },
+      ];
+    
+      populateFilters();
+      renderTzadikim(tzadikimData);
+      */
     </script>
   </body>
 </html>
