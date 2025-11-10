@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>הבלוג של הצדיקים</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-[#FDFBF7] flex flex-col items-center py-12 px-2">
+    <div class="max-w-6xl w-full mx-auto">
+      <!-- כותרת עליונה -->
+      <div class="text-center mb-12">
+        <div
+          class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg border border-amber-100 mb-6"
+        >
+          <svg
+            class="w-8 h-8 text-amber-700"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 17.75l6.16 3.73-1.64-7.03L21.5 9.24l-7.19-.61L12 2 9.69 8.63 2.5 9.24l5.98 5.21-1.64 7.03z"
+            />
+          </svg>
+          <h1 class="text-4xl font-bold text-amber-900 text-center">
+            הבלוג של הצדיקים
+          </h1>
+        </div>
+        <p class="text-lg text-amber-800 max-w-2xl mx-auto">
+          מדריך מפורט לקברי צדיקים ומקומות קדושים ברחבי העולם
+        </p>
+      </div>
+
+      <!-- חיפוש וכפתור הוספה -->
+      <div
+        class="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-100 p-8 mb-8"
+      >
+        <div class="flex flex-col gap-4 flex-1 w-full">
+          <div class="relative flex-1 max-w-xs w-full">
+            <svg
+              class="absolute right-4 top-1/2 transform -translate-y-1/2 text-amber-500 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m21 21-4.35-4.35"
+              ></path>
+            </svg>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="חיפוש צדיק..."
+              class="pr-12 pl-4 py-3 text-right bg-amber-50 border border-amber-200 rounded-xl w-full text-gray-800 placeholder-gray-500"
+            />
+          </div>
+          <button
+            type="button"
+            id="toggleAdvanced"
+            class="text-amber-700 underline mt-2 text-sm self-start"
+          >
+            הרחב חיפוש
+          </button>
+          <div
+            id="advancedSearch"
+            class="hidden flex-col md:flex-row gap-4 mt-2"
+          >
+            <div class="relative flex-1 max-w-xs w-full">
+              <select
+                id="cityFilter"
+                class="pr-4 pl-4 py-3 text-right bg-amber-50 border border-amber-200 rounded-xl w-full text-gray-800"
+              >
+                <option value="">כל הערים</option>
+              </select>
+            </div>
+            <div class="relative flex-1 max-w-xs w-full">
+              <select
+                id="communityFilter"
+                class="pr-4 pl-4 py-3 text-right bg-amber-50 border border-amber-200 rounded-xl w-full text-gray-800"
+              >
+                <option value="">בחר קהילה</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              id="resetFilters"
+              class="text-amber-700 underline mt-2 text-sm self-start"
+            >
+              איפוס חיפוש
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+        >
+          <span class="text-xl font-bold">+</span>
+          הוספת צדיק חדש
+        </button>
+      </div>
+
+      <!-- רשימת צדיקים -->
+      <div id="tzadikimList"></div>
+    </div>
+
+    <script>
+      let tzadikimData = [];
+      let filteredData = [];
+
+      // טעינת הנתונים מקובץ JSON
+      async function loadData() {
+        try {
+          const response = await fetch("data.json");
+          const data = await response.json();
+          tzadikimData = data.tzadikim;
+          populateFilters();
+          renderTzadikim(tzadikimData);
+        } catch (error) {
+          console.error("Error loading data:", error);
+        }
+      }
+
+      // מילוי הפילטרים
+      function populateFilters() {
+        const cities = [
+          ...new Set(tzadikimData.map((t) => t.city).filter(Boolean)),
+        ].sort((a, b) => a.localeCompare(b, "he"));
+        const communities = [
+          ...new Set(
+            tzadikimData.map((t) => t.community?.name).filter(Boolean)
+          ),
+        ].sort((a, b) => a.localeCompare(b, "he"));
+
+        const cityFilter = document.getElementById("cityFilter");
+        cities.forEach((city) => {
+          const option = document.createElement("option");
+          option.value = city;
+          option.textContent = city;
+          cityFilter.appendChild(option);
+        });
+
+        const communityFilter = document.getElementById("communityFilter");
+        communities.forEach((community) => {
+          const option = document.createElement("option");
+          option.value = community;
+          option.textContent = community;
+          communityFilter.appendChild(option);
+        });
+      }
+
+      // קבלת כותרת לפי מין וקהילה
+      function getTitle(tzadik) {
+        if (tzadik.gender === "female" && tzadik.community?.name) {
+          const comm = tzadik.community.name.trim();
+          return comm.includes("תימן") ? "מרת" : "הרבנית";
+        }
+        if (tzadik.gender === "male" && tzadik.community?.name) {
+          const comm = tzadik.community.name.trim();
+          return comm.includes("תימן") ? "מורי" : "רבי";
+        }
+        return "";
+      }
+
+      // קיבוץ לפי אות ראשונה
+      function groupByFirstLetter(data) {
+        const grouped = {};
+        data.forEach((tzadik) => {
+          const letter = tzadik.name?.charAt(0) || "א";
+          if (!grouped[letter]) grouped[letter] = [];
+          grouped[letter].push(tzadik);
+        });
+        return grouped;
+      }
+
+      // רינדור הצדיקים
+      function renderTzadikim(data) {
+        const container = document.getElementById("tzadikimList");
+        container.innerHTML = "";
+
+        const grouped = groupByFirstLetter(data);
+        const sortedLetters = Object.keys(grouped).sort();
+
+        sortedLetters.forEach((letter) => {
+          const section = document.createElement("div");
+          section.className = "mb-4";
+
+          // כותרת האות
+          const header = document.createElement("div");
+          header.className = "flex items-center gap-4 mb-6";
+          header.innerHTML = `
+                    <div class="w-12 h-12 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-lg">
+                        ${letter}
+                    </div>
+                    <div class="h-px bg-gradient-to-l from-amber-200 to-transparent flex-1"></div>
+                `;
+          section.appendChild(header);
+
+          // גריד של כרטיסים
+          const grid = document.createElement("div");
+          grid.className =
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
+
+          grouped[letter].forEach((tzadik) => {
+            const card = document.createElement("a");
+            card.href = `#${tzadik.id}`;
+            card.className =
+              "group cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white hover:shadow-xl transition-all duration-300 border border-amber-100 hover:border-amber-300 rounded-xl block";
+
+            const title = getTitle(tzadik);
+            const honorific = tzadik.gender === "male" ? 'זצ"ל' : 'ע"ה';
+            const locationText = tzadik.city || "";
+
+            card.innerHTML = `
+                        <div class="p-6 flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300">
+                                <svg class="w-7 h-7 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5V8.5a2 2 0 012-2h12a2 2 0 012 2v11M9 12h6"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-amber-900 text-lg mb-1 group-hover:text-amber-700 transition-colors">
+                                    ${title} ${tzadik.name} ${honorific}
+                                </h3>
+                                ${
+                                  locationText
+                                    ? `
+                                    <div class="flex items-center gap-2 text-amber-800 text-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                            <circle cx="12" cy="9" r="2.5"/>
+                                        </svg>
+                                        <span>${locationText}</span>
+                                    </div>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+
+            grid.appendChild(card);
+          });
+
+          section.appendChild(grid);
+          container.appendChild(section);
+        });
+      }
+
+      // פילטור
+      function applyFilters() {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const cityFilter = document.getElementById("cityFilter").value;
+        const communityFilter =
+          document.getElementById("communityFilter").value;
+
+        const filtered = tzadikimData.filter((tzadik) => {
+          const matchesSearch =
+            !searchTerm || tzadik.name?.toLowerCase().includes(searchTerm);
+          const matchesCity = !cityFilter || tzadik.city === cityFilter;
+          const matchesCommunity =
+            !communityFilter || tzadik.community?.name === communityFilter;
+          return matchesSearch && matchesCity && matchesCommunity;
+        });
+
+        renderTzadikim(filtered);
+      }
+
+      // Event Listeners
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", applyFilters);
+      document
+        .getElementById("cityFilter")
+        .addEventListener("change", applyFilters);
+      document
+        .getElementById("communityFilter")
+        .addEventListener("change", applyFilters);
+
+      document
+        .getElementById("toggleAdvanced")
+        .addEventListener("click", () => {
+          const advancedSearch = document.getElementById("advancedSearch");
+          const toggleBtn = document.getElementById("toggleAdvanced");
+
+          if (advancedSearch.classList.contains("hidden")) {
+            advancedSearch.classList.remove("hidden");
+            advancedSearch.classList.add("flex");
+            toggleBtn.textContent = "הסתר חיפוש מורחב";
+          } else {
+            advancedSearch.classList.add("hidden");
+            advancedSearch.classList.remove("flex");
+            toggleBtn.textContent = "הרחב חיפוש";
+          }
+        });
+
+      document.getElementById("resetFilters").addEventListener("click", () => {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("cityFilter").value = "";
+        document.getElementById("communityFilter").value = "";
+        applyFilters();
+      });
+
+      // טעינה ראשונית
+      loadData();
+    </script>
+  </body>
+</html>
