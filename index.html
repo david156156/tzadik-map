@@ -3,21 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>מיקום קיברות צדיקים</title>
-    <link rel="icon" type="image/x-icon" href="./אייקון.jpg" />
-    <link rel="shortcut icon" type="image/x-icon" href="./אייקון.jpg" />
+    <title>מיקום קברות צדיקים</title>
+    <link rel="icon" type="image/x-icon" href="./images/אייקון.jpg" />
+    <link rel="shortcut icon" type="image/x-icon" href="./images/אייקון.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-      }
-    </style>
+    <link rel="stylesheet" href="./styles/main.css" />
   </head>
   <body class="min-h-screen bg-[#FDFBF7] flex flex-col items-center py-12 px-2">
     <div class="max-w-6xl w-full mx-auto">
       <!-- כותרת עליונה -->
-      <div class="text-center mb-6">
+      <div class="text-center mb-6 hero-background rounded-3xl p-8">
         <div
           class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg border border-amber-100 mb-4"
         >
@@ -35,13 +30,68 @@
             />
           </svg>
           <h1 class="text-4xl font-bold text-amber-900 text-center">
-            מיקום קיברות צדיקים
+            מיקום קברות צדיקים
           </h1>
         </div>
-        <p class="text-lg text-amber-800 max-w-2xl mx-auto">
+        <p
+          class="text-lg text-white max-w-2xl mx-auto font-semibold drop-shadow-lg"
+        >
           מיקומי קברי צדיקים ברחבי הארץ - כולל מיקום מדויק בגוגל מפות ו-Waze,
           תמונות, פרטים ביוגרפיים ומידע היסטורי על כל צדיק
         </p>
+      </div>
+
+      <!-- תאריך עברי -->
+      <div
+        class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-md border border-amber-100 mb-4 inline-block mx-auto"
+      >
+        <div class="flex items-center gap-3">
+          <svg
+            class="w-5 h-5 text-amber-700"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <p id="hebrew-date" class="text-lg font-semibold text-amber-900">
+            טוען...
+          </p>
+        </div>
+      </div>
+
+      <!-- הצגת צדיקים בתאריך העברי של היום -->
+      <div
+        id="todayTzadikim"
+        class="hidden mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 shadow-lg"
+      >
+        <h2
+          class="text-2xl font-bold text-amber-900 mb-4 flex items-center gap-2"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 17.75l6.16 3.73-1.64-7.03L21.5 9.24l-7.19-.61L12 2 9.69 8.63 2.5 9.24l5.98 5.21-1.64 7.03z"
+            />
+          </svg>
+          <span id="todayHebrewDateTitle"></span>
+        </h2>
+        <div
+          id="todayTzadikimList"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+        ></div>
       </div>
 
       <!-- חיפוש וכפתור הוספה -->
@@ -115,328 +165,14 @@
             </button>
           </div>
         </div>
-        <!-- <button
-          type="button"
-          class="bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-        >
-          <span class="text-xl font-bold">+</span>
-          הוספת צדיק חדש
-        </button> -->
       </div>
 
       <!-- רשימת צדיקים -->
       <div id="tzadikimList"></div>
     </div>
 
-    <script>
-      let tzadikimData = [];
-      let filteredData = [];
-
-      // טעינת הנתונים מקובץ JSON
-      async function loadData() {
-        try {
-          const response = await fetch("data.json");
-          const data = await response.json();
-          tzadikimData = data.tzadikim;
-          populateFilters();
-          renderTzadikim(tzadikimData);
-        } catch (error) {
-          console.error("Error loading data:", error);
-        }
-      }
-
-      // חילוץ חודש עברי מתאריך עברי מלא
-      function extractHebrewMonth(hebrewDate) {
-        if (!hebrewDate) return null;
-        const parts = hebrewDate.split(" ");
-        // המילה השנייה היא החודש (לדוגמה: "א באלול תרסט" -> "באלול")
-        if (parts.length >= 2) {
-          return parts[1]; // מסיר את ה-ב' מ"באלול"
-        }
-        return null;
-      }
-
-      // מילוי הפילטרים
-      function populateFilters() {
-        const cities = [
-          ...new Set(tzadikimData.map((t) => t.city).filter(Boolean)),
-        ].sort((a, b) => a.localeCompare(b, "he"));
-        const communities = [
-          ...new Set(
-            tzadikimData.map((t) => t.community?.name).filter(Boolean)
-          ),
-        ].sort((a, b) => a.localeCompare(b, "he"));
-
-        // חודשים עבריים
-        const hebrewMonths = [
-          ...new Set(
-            tzadikimData
-              .map((t) => extractHebrewMonth(t.deathDateHebrew))
-              .filter(Boolean)
-          ),
-        ].sort((a, b) => a.localeCompare(b, "he"));
-
-        const cityFilter = document.getElementById("cityFilter");
-        cities.forEach((city) => {
-          const option = document.createElement("option");
-          option.value = city;
-          option.textContent = city;
-          cityFilter.appendChild(option);
-        });
-
-        const communityFilter = document.getElementById("communityFilter");
-        communities.forEach((community) => {
-          const option = document.createElement("option");
-          option.value = community;
-          option.textContent = community;
-          communityFilter.appendChild(option);
-        });
-
-        const monthFilter = document.getElementById("monthFilter");
-        hebrewMonths.forEach((month) => {
-          const option = document.createElement("option");
-          option.value = month;
-          option.textContent = month;
-          monthFilter.appendChild(option);
-        });
-      }
-
-      // קבלת כותרת לפי מין וקהילה
-      function getTitle(tzadik) {
-        if (tzadik.gender === "female" && tzadik.community?.name) {
-          const comm = tzadik.community.name.trim();
-          return comm.includes("תימן") ? "מרת" : "הרבנית";
-        }
-        if (tzadik.gender === "male" && tzadik.community?.name) {
-          const comm = tzadik.community.name.trim();
-          return comm.includes("תימן") ? "מורי" : "רבי";
-        }
-        return "";
-      }
-
-      // קיבוץ לפי אות ראשונה
-      function groupByFirstLetter(data) {
-        const grouped = {};
-        data.forEach((tzadik) => {
-          const letter = tzadik.name?.charAt(0) || "א";
-          if (!grouped[letter]) grouped[letter] = [];
-          grouped[letter].push(tzadik);
-        });
-        return grouped;
-      }
-
-      // רינדור הצדיקים
-      function renderTzadikim(data) {
-        const container = document.getElementById("tzadikimList");
-        container.innerHTML = "";
-
-        const grouped = groupByFirstLetter(data);
-        const sortedLetters = Object.keys(grouped).sort();
-
-        sortedLetters.forEach((letter) => {
-          const section = document.createElement("div");
-          section.className = "mb-2";
-
-          // כותרת האות
-          const header = document.createElement("div");
-          header.className = "flex items-center gap-4 mb-2";
-          header.innerHTML = `
-                    <div class="w-8 h-8 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-xl flex items-center justify-center text-l font-bold shadow-lg">
-                        ${letter}
-                    </div>
-                    <div class="h-px bg-gradient-to-l from-amber-200 to-transparent flex-1"></div>
-                `;
-          section.appendChild(header);
-
-          // גריד של כרטיסים
-          const grid = document.createElement("div");
-          grid.className =
-            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-1 gap-y-1";
-
-          grouped[letter].forEach((tzadik) => {
-            const card = document.createElement("a");
-            card.href = `tzadik.html?id=${tzadik.id}`;
-            card.className =
-              "group cursor-pointer bg-white/90 backdrop-blur-sm hover:bg-white hover:shadow-xl transition-all duration-300 border border-amber-100 hover:border-amber-300 rounded-xl block";
-
-            const title = getTitle(tzadik);
-            const honorific = tzadik.gender === "male" ? 'זצ"ל' : 'ע"ה';
-            const locationText = tzadik.city || "";
-
-            card.innerHTML = `
-                        <div class="py-2 px-4 flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-orange-200 transition-all duration-300 flex-shrink-0">
-                                <svg class="w-6 h-6 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5V8.5a2 2 0 012-2h12a2 2 0 012 2v11M9 12h6"/>
-                                </svg>
-                            </div>
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <h3 class="font-bold text-amber-900 text-base group-hover:text-amber-700 transition-colors whitespace-nowrap">
-                                    ${title} ${tzadik.name} ${honorific}
-                                </h3>
-                                ${
-                                  locationText
-                                    ? `
-                                    <span class="text-amber-600 mx-1">|</span>
-                                    <div class="flex items-center gap-1.5 text-amber-800 text-sm">
-                                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                                            <circle cx="12" cy="9" r="2.5"/>
-                                        </svg>
-                                        <span class="truncate">${locationText}</span>
-                                    </div>
-                                `
-                                    : ""
-                                }
-                            </div>
-                        </div>
-                    `;
-
-            grid.appendChild(card);
-          });
-
-          section.appendChild(grid);
-          container.appendChild(section);
-        });
-      }
-
-      // פילטור
-      function applyFilters() {
-        const searchTerm = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        const cityFilter = document.getElementById("cityFilter").value;
-        const communityFilter =
-          document.getElementById("communityFilter").value;
-        const monthFilter = document.getElementById("monthFilter").value;
-
-        const filtered = tzadikimData.filter((tzadik) => {
-          const matchesSearch =
-            !searchTerm || tzadik.name?.toLowerCase().includes(searchTerm);
-          const matchesCity = !cityFilter || tzadik.city === cityFilter;
-          const matchesCommunity =
-            !communityFilter || tzadik.community?.name === communityFilter;
-          const matchesMonth =
-            !monthFilter ||
-            extractHebrewMonth(tzadik.deathDateHebrew) === monthFilter;
-          return (
-            matchesSearch && matchesCity && matchesCommunity && matchesMonth
-          );
-        });
-
-        renderTzadikim(filtered);
-      }
-
-      // Event Listeners
-      document
-        .getElementById("searchInput")
-        .addEventListener("input", applyFilters);
-      document
-        .getElementById("cityFilter")
-        .addEventListener("change", applyFilters);
-      document
-        .getElementById("communityFilter")
-        .addEventListener("change", applyFilters);
-      document
-        .getElementById("monthFilter")
-        .addEventListener("change", applyFilters);
-
-      document
-        .getElementById("toggleAdvanced")
-        .addEventListener("click", () => {
-          const advancedSearch = document.getElementById("advancedSearch");
-          const toggleBtn = document.getElementById("toggleAdvanced");
-
-          if (advancedSearch.classList.contains("hidden")) {
-            advancedSearch.classList.remove("hidden");
-            advancedSearch.classList.add("flex");
-            toggleBtn.textContent = "הסתר חיפוש מורחב";
-          } else {
-            advancedSearch.classList.add("hidden");
-            advancedSearch.classList.remove("flex");
-            toggleBtn.textContent = "הרחב חיפוש";
-          }
-        });
-
-      document.getElementById("resetFilters").addEventListener("click", () => {
-        document.getElementById("searchInput").value = "";
-        document.getElementById("cityFilter").value = "";
-        document.getElementById("communityFilter").value = "";
-        document.getElementById("monthFilter").value = "";
-        applyFilters();
-      });
-
-      // טעינה ראשונית
-      loadData();
-
-      // *** רשימה לדוגמה לבדיקות ***
-      // הסר את ההערה כדי לראות דוגמה ללא טעינת JSON
-
-      //   tzadikimData = [
-      //     {
-      //       id: 1,
-      //       name: "יוסף חיים",
-      //       gender: "male",
-      //       community: { id: 4, name: "עיראק" },
-      //       city: "בגדד",
-      //       country: "עיראק",
-      //       birthDate: "1835-09-04",
-      //       birthDateHebrew: "כד אלול תקצה",
-      //       deathDate: "1909-08-30",
-      //       deathDateHebrew: "א אלול תרסט",
-      //     },
-      //     {
-      //       id: 2,
-      //       name: "אהרון בוזגלו",
-      //       gender: "male",
-      //       community: { id: 2, name: "מרוקו" },
-      //       city: "אשקלון",
-      //       country: "ישראל",
-      //       birthDate: null,
-      //       birthDateHebrew: null,
-      //       deathDate: "1956-10-15",
-      //       deathDateHebrew: "י אלול תשטז",
-      //     },
-      //     {
-      //       id: 3,
-      //       name: "מרים שובלי",
-      //       gender: "female",
-      //       community: { id: 3, name: "תימן" },
-      //       city: "פתח תקווה",
-      //       country: "ישראל",
-      //       birthDate: null,
-      //       birthDateHebrew: null,
-      //       deathDate: "1996-07-03",
-      //       deathDateHebrew: "טז תמוז תשנו",
-      //     },
-      //     {
-      //       id: 4,
-      //       name: "יחיא עואד",
-      //       gender: "male",
-      //       community: { id: 3, name: "תימן" },
-      //       city: "רמת השרון",
-      //       country: "ישראל",
-      //       birthDate: null,
-      //       birthDateHebrew: null,
-      //       deathDate: "1981-10-22",
-      //       deathDateHebrew: "כג תשרי תשמב",
-      //     },
-      //     {
-      //       id: 5,
-      //       name: "יעקב אבוחצירא",
-      //       gender: "male",
-      //       community: { id: 2, name: "מרוקו" },
-      //       city: "נתיבות",
-      //       country: "ישראל",
-      //       birthDate: "1808-01-01",
-      //       birthDateHebrew: "כא טבת תקסח",
-      //       deathDate: "1880-12-20",
-      //       deathDateHebrew: "ח טבת תרמא",
-      //     },
-      //   ];
-
-      //   populateFilters();
-      //   renderTzadikim(tzadikimData);
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.8.0/suncalc.min.js"></script>
+    <script src="./scripts/hebrew-date.js"></script>
+    <script src="./scripts/index.js"></script>
   </body>
 </html>
